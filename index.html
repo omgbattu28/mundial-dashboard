@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mundial - Dashboard En Vivo</title>
+    <style>
+        /* Estilos generales "Enchulados" (Modo Oscuro Elegante) */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #ffffff; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h2, h3 { color: #f8b400; /* Toque dorado mundialista */ margin-bottom: 15px;}
+        
+        /* Tarjetas Principales */
+        .card { background: #1e1e1e; border-radius: 15px; padding: 20px; margin-bottom: 25px; box-shadow: 0 8px 16px rgba(0,0,0,0.4); border: 1px solid #333; }
+        
+        /* Partido en Vivo */
+        .live-badge { background-color: #e53935; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; margin-bottom: 15px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.8; } }
+        
+        .scoreboard { display: flex; justify-content: space-between; align-items: center; font-size: 24px; font-weight: bold; margin-bottom: 20px; text-align: center; }
+        .team { display: flex; flex-direction: column; align-items: center; width: 30%; font-size: 28px; }
+        .score { font-size: 42px; color: #f8b400; background: #2a2a2a; padding: 10px 25px; border-radius: 10px; }
+        
+        /* Estilos para el Historial (H2H) */
+        .h2h-container { background: #222; border-radius: 10px; padding: 15px; margin: 20px 0; font-size: 14px; border: 1px solid #333; }
+        .h2h-container h4 { text-align: center; color: #f8b400; margin-top: 0; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; font-size: 14px; }
+        .h2h-category { margin-bottom: 15px; }
+        .h2h-category:last-child { margin-bottom: 0; }
+        .h2h-category strong { color: #aaa; border-bottom: 1px solid #444; padding-bottom: 3px; display: block; margin-bottom: 8px; }
+        .h2h-match { display: flex; justify-content: space-between; background: #1a1a1a; padding: 8px 12px; border-radius: 5px; margin-bottom: 5px; }
+        .h2h-match .date { color: #888; font-size: 12px; }
+        
+        .stars-container { display: flex; justify-content: space-around; border-top: 1px solid #333; padding-top: 20px; }
+        .team-stars { width: 45%; }
+        .team-stars h4 { text-align: center; margin-top: 0; color: #aaa; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;}
+        .player { display: flex; align-items: center; margin-bottom: 10px; background: #2a2a2a; padding: 8px 12px; border-radius: 10px; transition: transform 0.2s;}
+        .player:hover { transform: scale(1.05); }
+        .player img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-right: 15px; border: 2px solid #f8b400; }
+        
+        /* Carrusel de Próximos Partidos */
+        .upcoming-carousel { display: flex; overflow-x: auto; gap: 15px; padding-bottom: 10px; }
+        .upcoming-carousel::-webkit-scrollbar { height: 8px; }
+        .upcoming-carousel::-webkit-scrollbar-track { background: #1e1e1e; border-radius: 10px;}
+        .upcoming-carousel::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
+        .upcoming-carousel::-webkit-scrollbar-thumb:hover { background: #f8b400; }
+        
+        .upcoming-card { background: #2a2a2a; min-width: 160px; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #333; flex-shrink: 0; }
+        .upcoming-card .time { font-size: 12px; color: #888; margin-bottom: 8px; display: block; }
+        .upcoming-card .teams { font-weight: bold; font-size: 14px; }
+        .upcoming-card .vs { color: #f8b400; font-size: 12px; margin: 0 5px; }
+        
+        /* Tabla de Grupos */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #333; }
+        th { background-color: #2a2a2a; color: #aaa; font-weight: normal; text-transform: uppercase; font-size: 12px;}
+        tr:hover { background-color: #2a2a2a; }
+        
+        /* NUEVO: Estilos para la Alineación */
+        .lineups-wrapper { display: flex; justify-content: space-between; margin-top: 15px; }
+        .lineup-team { width: 48%; }
+        .lineup-team h4 { text-align: center; color: #f8b400; margin-top: 0; margin-bottom: 5px; font-size: 16px; }
+        .formation { text-align: center; color: #888; font-size: 12px; margin-bottom: 15px; font-weight: bold; }
+        .status-badge { background: #4caf50; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; vertical-align: middle; margin-left: 5px; text-transform: uppercase; }
+        .player-list { list-style: none; padding: 0; margin: 0; }
+        
+        /* Modificamos el diseño de cada jugador en la lista */
+        .player-list li { background: #1a1a1a; margin-bottom: 5px; padding: 8px 12px; border-radius: 6px; font-size: 13px; border-left: 3px solid #f8b400; display: flex; align-items: center; gap: 8px; }
+        .player-num { font-weight: bold; color: #fff; width: 22px; text-align: right; }
+        .player-name { color: white; width: 100px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .player-pos { background: #333; color: #f8b400; padding: 2px 5px; border-radius: 4px; font-size: 10px; font-weight: bold; text-align: center; min-width: 32px; }
+        .player-desc { font-size: 10px; color: #888; font-style: italic; flex-grow: 1; }
+        .player-rating { font-weight: bold; color: #4caf50; background: rgba(76, 175, 80, 0.1); padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+        
+        /* Extras */
+        .loading { text-align: center; color: #888; padding: 20px; }
+        .error-msg { color: white; background-color: #e53935; padding: 15px; border-radius: 5px; text-align: center; }
+        
+        /* */
+        /* NUEVO: Notificación de GOL */
+        .goal-alert { display: none; background: #4caf50; color: white; text-align: center; padding: 15px; font-size: 20px; font-weight: bold; border-radius: 10px; margin-bottom: 20px; animation: pulse 1s infinite; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🏆 Central del Mundial</h2>
+    
+    <!-- -->
+    <!-- NUEVO: Cartel de Gol Oculto -->
+    <div id="goal-alert" class="goal-alert">¡GOL!</div>
+
+    <!-- Tarjeta del Partido Principal -->
+    <div class="card" id="match-container">
+        <div class="loading">Cargando partido estelar... ⚽</div>
+    </div>
+
+    <!-- NUEVA SECCIÓN: Tarjeta de Alineaciones -->
+    <div class="card" id="lineups-card">
+        <h3>Alineaciones (XI Inicial)</h3>
+        <div id="lineups-container">
+            <div class="loading">Cargando formaciones... 📋</div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN NUEVA: Próximos Partidos -->
+    <h3>Próximos Partidos Hoy</h3>
+    <div class="upcoming-carousel" id="upcoming-container">
+        <div class="loading">Cargando calendario...</div>
+    </div>
+
+    <!-- Tarjeta del Grupo -->
+    <div class="card" style="margin-top: 25px;">
+        <h3>Clasificación - Grupo C</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>País</th>
+                    <th>PJ</th>
+                    <th>Pts</th>
+                </tr>
+            </thead>
+            <tbody id="group-container">
+                <tr><td colspan="3" class="loading">Cargando tabla...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Diccionario de banderas
+    const flags = { "Argentina": "🇦🇷", "Austria": "🇦🇹", "Polonia": "🇵🇱", "Arabia Saudita": "🇸🇦", "Francia": "🇫🇷", "Dinamarca": "🇩🇰", "España": "🇪🇸", "Alemania": "🇩🇪", "Brasil": "🇧🇷", "Suiza": "🇨🇭" };
+    function getFlag(team) { return flags[team] || "🏳️"; }
+
+    async function cargarDatosDelMundial() {
+        try {
+            const respuesta = await fetch('http://localhost:3000/api/mundial/live');
+            if (!respuesta.ok) throw new Error("Error en servidor");
+            
+            const datos = await respuesta.json();
+
+            renderMatch(datos.match);
+            renderLineups(datos.lineups, datos.match.team1, datos.match.team2); // NUEVO: Llamamos a la función
+            renderUpcoming(datos.upcoming); 
+            renderGroup(datos.group);
+
+        } catch (error) {
+            console.error(error);
+            document.getElementById('match-container').innerHTML = `<div class="error-msg">Error de conexión. ¿Está encendido el servidor? (Asegúrate de ejecutar "node server.js" en la consola)</div>`;
+        }
+    }
+
+    function renderMatch(d) {
+        document.getElementById('match-container').innerHTML = `
+            <div style="text-align: center;"><span class="live-badge">🔴 EN VIVO</span></div>
+            <div class="scoreboard">
+                <div class="team"><span>${getFlag(d.team1)}</span><span>${d.team1}</span></div>
+                <div class="score">${d.score1} - ${d.score2}</div>
+                <div class="team"><span>${getFlag(d.team2)}</span><span>${d.team2}</span></div>
+            </div>
+            
+            <!-- HISTORIAL DE ENFRENTAMIENTOS -->
+            <div class="h2h-container">
+                <h4>Historial de Enfrentamientos</h4>
+                <div class="h2h-category">
+                    <strong>🏆 Partidos Oficiales</strong>
+                    ${d.h2h && d.h2h.official && d.h2h.official.length > 0 ? d.h2h.official.map(m => `
+                        <div class="h2h-match">
+                            <span>${m.tournament}</span>
+                            <span>${m.result}</span>
+                            <span class="date">${m.year}</span>
+                        </div>
+                    `).join('') : '<div class="h2h-match">Sin datos</div>'}
+                </div>
+                <div class="h2h-category">
+                    <strong>🤝 Amistosos</strong>
+                    ${d.h2h && d.h2h.friendlies && d.h2h.friendlies.length > 0 ? d.h2h.friendlies.map(m => `
+                        <div class="h2h-match">
+                            <span>Amistoso Internacional</span>
+                            <span>${m.result}</span>
+                            <span class="date">${m.year}</span>
+                        </div>
+                    `).join('') : '<div class="h2h-match">Sin datos</div>'}
+                </div>
+            </div>
+
+            <!-- MEJORES JUGADORES -->
+            <div class="stars-container">
+                <div class="team-stars">
+                    <h4>Estrellas ${d.team1}</h4>
+                    ${d.stars1.map(p => `<div class="player"><img src="${p.img}"><span>${p.name}</span></div>`).join('') || '<div class="player"><span>Sin datos</span></div>'}
+                </div>
+                <div class="team-stars">
+                    <h4>Estrellas ${d.team2}</h4>
+                    ${d.stars2.map(p => `<div class="player"><img src="${p.img}"><span>${p.name}</span></div>`).join('') || '<div class="player"><span>Sin datos</span></div>'}
+                </div>
+            </div>
+        `;
+    }
+
+    // NUEVA FUNCIÓN: Pinta la lista de jugadores de la alineación
+    function renderLineups(lineupsData, team1, team2) {
+        const container = document.getElementById('lineups-container');
+        const l1 = lineupsData[team1];
+        const l2 = lineupsData[team2];
+
+        // Si la API aún no las publica (ej. faltan 3 horas para el partido)
+        if(!l1 || !l2) {
+            container.innerHTML = '<div class="loading">Alineaciones no disponibles aún.</div>';
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="lineups-wrapper">
+                <div class="lineup-team">
+                    <h4>${getFlag(team1)} ${team1} <span class="status-badge">${l1.status}</span></h4>
+                    <div class="formation">Formación: ${l1.formation}</div>
+                    <ul class="player-list">
+                        ${l1.players.map(player => `
+                            <li>
+                                <span class="player-num">${player.num}</span>
+                                <span class="player-name">${player.name}</span>
+                                <span class="player-pos">${player.pos}</span>
+                                <span class="player-desc">(${player.desc})</span>
+                                <span class="player-rating">⭐ ${player.rating}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+                <div class="lineup-team">
+                    <h4>${getFlag(team2)} ${team2} <span class="status-badge">${l2.status}</span></h4>
+                    <div class="formation">Formación: ${l2.formation}</div>
+                    <ul class="player-list">
+                        ${l2.players.map(player => `
+                            <li>
+                                <span class="player-num">${player.num}</span>
+                                <span class="player-name">${player.name}</span>
+                                <span class="player-pos">${player.pos}</span>
+                                <span class="player-desc">(${player.desc})</span>
+                                <span class="player-rating">⭐ ${player.rating}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
+
+    // NUEVA FUNCIÓN: Pinta las tarjetitas horizontales
+    function renderUpcoming(upcomingData) {
+        const container = document.getElementById('upcoming-container');
+        container.innerHTML = upcomingData.map(partido => `
+            <div class="upcoming-card">
+                <span class="time">🕒 ${partido.time}</span>
+                <div class="teams">
+                    ${getFlag(partido.homeTeam)} ${partido.homeTeam} 
+                    <br><span class="vs">VS</span><br> 
+                    ${getFlag(partido.awayTeam)} ${partido.awayTeam}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderGroup(groupData) {
+        document.getElementById('group-container').innerHTML = groupData.map(t => `
+            <tr>
+                <td>${getFlag(t.team)} <strong>${t.team}</strong></td>
+                <td>${t.played}</td>
+                <td style="color: #f8b400; font-weight: bold; font-size: 18px;">${t.points}</td>
+            </tr>
+        `).join('');
+    }
+
+    cargarDatosDelMundial();
+    
+    //    // ========================================================================
+    // NUEVO: WEBSOCKETS PARA ACTUALIZACIONES EN TIEMPO REAL SIN RECARGAR
+    // ========================================================================
+</script>
+<!-- Traemos la herramienta de Socket.io al navegador -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+    // Nos conectamos al servidor
+    const socket = io('http://localhost:3000');
+
+    socket.on('connect', () => {
+        console.log('Conectado a la señal en vivo 📡');
+    });
+
+    // Escuchamos el evento que creamos en Node.js
+    socket.on('actualizacion_partido', (datos) => {
+        
+        // 1. Buscamos la cajita de los goles y le cambiamos el texto
+        const scoreDiv = document.querySelector('.score');
+        if (scoreDiv) {
+            scoreDiv.innerText = `${datos.homeScore} - ${datos.awayScore}`;
+        }
+
+        // 2. Mostramos el cartel verde brillante de GOL
+        const alertDiv = document.getElementById('goal-alert');
+        alertDiv.innerText = datos.mensaje;
+        alertDiv.style.display = 'block';
+
+        // 3. Escondemos el cartel después de 6 segundos
+        setTimeout(() => {
+            alertDiv.style.display = 'none';
+        }, 6000);
+    });
+</script>
+
+</body>
+</html>
