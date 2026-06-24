@@ -133,7 +133,7 @@
 
     async function cargarDatosDelMundial() {
         try {
-            const respuesta = await fetch('http://localhost:3000/api/mundial/live');
+            const respuesta = await fetch('/api/mundial/live');
             if (!respuesta.ok) throw new Error("Error en servidor");
             
             const datos = await respuesta.json();
@@ -280,7 +280,7 @@
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
     // Nos conectamos al servidor
-    const socket = io('http://localhost:3000');
+    const socket = io();
 
     socket.on('connect', () => {
         console.log('Conectado a la señal en vivo 📡');
