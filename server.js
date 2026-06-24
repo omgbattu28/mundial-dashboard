@@ -113,6 +113,20 @@ async function obtenerAlineaciones() {
 // ============================================================================
 // 3. NUESTRO ENDPOINT PRINCIPAL
 // ============================================================================
+
+
+// Importa el módulo 'path' al principio del archivo si no lo tienes
+const path = require('path'); 
+
+// Esta ruta sirve tu index.html cuando entran a la raíz
+app.use(express.static(path.join(__dirname, '/')));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+
+
 app.get('/api/mundial/live', async (req, res) => {
     try {
         const partidoDatos = await obtenerPartidoEnVivoExternaAPI();
@@ -180,5 +194,5 @@ io.on('connection', (socket) => {
 // 4. ARRANCAR EL SERVIDOR (Cambiamos app.listen por server.listen)
 // ============================================================================
 server.listen(PORT, () => {
-    console.log(`🏆 Servidor del Mundial (con WebSockets) corriendo en: http://localhost:${PORT}`);
+    console.log(`🏆 Servidor del Mundial (con WebSockets) corriendo en: https://mundial-dashboard-r9so.onrender.com/:${PORT}`);
 });
